@@ -37,8 +37,16 @@ app.post('/api/send', async (req, res) => {
       return;
     }
 
-    if (!to || typeof to !== 'string' || !isEmail(to)) {
-      res.status(400).json({ error: 'Invalid recipient email.' });
+    // 支持单个邮箱（字符串）或多个邮箱（数组）
+    let recipients: string[] = [];
+    if (Array.isArray(to)) {
+      recipients = to.filter((email: string) => typeof email === 'string' && isEmail(email));
+    } else if (typeof to === 'string' && isEmail(to)) {
+      recipients = [to];
+    }
+
+    if (recipients.length === 0) {
+      res.status(400).json({ error: 'Please provide at least one valid recipient email.' });
       return;
     }
     if (!html || typeof html !== 'string') {
@@ -46,7 +54,7 @@ app.post('/api/send', async (req, res) => {
       return;
     }
 
-    console.log('📤 Attempting to send email to:', to);
+    console.log('📤 Attempting to send email to:', recipients.join(', '));
 
     // 创建 Nodemailer transporter（使用 Gmail）
     const transporter = nodemailer.createTransport({
@@ -57,20 +65,21 @@ app.post('/api/send', async (req, res) => {
       },
     });
 
-    // 发送邮件
+    // 发送邮件（多个收件人用逗号分隔）
     const info = await transporter.sendMail({
       from: mailFrom,
-      to,
+      to: recipients.join(', '),
       subject: subject || 'Quick Send Email',
       html,
     });
 
-    console.log('✅ Email sent successfully:', info.messageId);
+    console.log('✅ Email sent successfully to', recipients.length, 'recipient(s):', info.messageId);
 
     res.status(200).json({
       ok: true,
       messageId: info.messageId,
       response: info.response,
+      recipientCount: recipients.length,
     });
   } catch (e: any) {
     console.error('❌ Failed to send email:', e);

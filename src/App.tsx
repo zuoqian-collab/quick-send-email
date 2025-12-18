@@ -1,13 +1,49 @@
 import React, { useState, useRef } from 'react';
 
 function App() {
-  const [to, setTo] = useState('');
+  const [recipients, setRecipients] = useState<string[]>([]);
+  const [recipientInput, setRecipientInput] = useState('');
   const [subject, setSubject] = useState('');
   const [html, setHtml] = useState('');
   const [fileName, setFileName] = useState('');
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  const addRecipient = (email: string) => {
+    const trimmed = email.trim().toLowerCase();
+    if (trimmed && isValidEmail(trimmed) && !recipients.includes(trimmed)) {
+      setRecipients([...recipients, trimmed]);
+      setRecipientInput('');
+      setStatus(null);
+    } else if (trimmed && !isValidEmail(trimmed)) {
+      setStatus({ type: 'error', message: 'Please enter a valid email address' });
+    }
+  };
+
+  const removeRecipient = (email: string) => {
+    setRecipients(recipients.filter(r => r !== email));
+  };
+
+  const handleRecipientKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',' || e.key === ' ') {
+      e.preventDefault();
+      addRecipient(recipientInput);
+    } else if (e.key === 'Backspace' && !recipientInput && recipients.length > 0) {
+      removeRecipient(recipients[recipients.length - 1]);
+    }
+  };
+
+  const handleRecipientPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pastedText = e.clipboardData.getData('text');
+    const emails = pastedText.split(/[\s,;]+/).filter(email => email.trim());
+    const validEmails = emails.filter(email => isValidEmail(email.trim().toLowerCase()));
+    const newRecipients = [...new Set([...recipients, ...validEmails.map(e => e.trim().toLowerCase())])];
+    setRecipients(newRecipients);
+  };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -65,9 +101,8 @@ function App() {
   };
 
   const handleSend = async () => {
-    const trimmedTo = to.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedTo)) {
-      setStatus({ type: 'error', message: 'Please enter a valid email address' });
+    if (recipients.length === 0) {
+      setStatus({ type: 'error', message: 'Please add at least one recipient' });
       return;
     }
     if (!html) {
@@ -83,7 +118,7 @@ function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          to: trimmedTo,
+          to: recipients,
           subject: subject || 'Quick Send Email',
           html,
         }),
@@ -93,9 +128,11 @@ function App() {
         setStatus({ type: 'error', message: data?.error || 'Failed to send email' });
         return;
       }
-      setStatus({ type: 'success', message: 'Email sent successfully!' });
+      const count = recipients.length;
+      setStatus({ type: 'success', message: `Email sent to ${count} recipient${count > 1 ? 's' : ''} successfully!` });
       // Reset form
-      setTo('');
+      setRecipients([]);
+      setRecipientInput('');
       setSubject('');
       setHtml('');
       setFileName('');
@@ -200,15 +237,35 @@ function App() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="to">Recipient</label>
-            <input
-              id="to"
-              type="email"
-              value={to}
-              onChange={(e) => setTo(e.target.value)}
-              placeholder="recipient@example.com"
-              className="input"
-            />
+            <label htmlFor="to">Recipients</label>
+            <div className="recipients-container">
+              {recipients.map((email) => (
+                <span key={email} className="recipient-tag">
+                  {email}
+                  <button
+                    type="button"
+                    className="recipient-remove"
+                    onClick={() => removeRecipient(email)}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                </span>
+              ))}
+              <input
+                id="to"
+                type="email"
+                value={recipientInput}
+                onChange={(e) => setRecipientInput(e.target.value)}
+                onKeyDown={handleRecipientKeyDown}
+                onPaste={handleRecipientPaste}
+                onBlur={() => recipientInput && addRecipient(recipientInput)}
+                placeholder={recipients.length === 0 ? "Enter email addresses..." : ""}
+                className="recipient-input"
+              />
+            </div>
+            <p className="input-hint">Press Enter, Space, or comma to add multiple recipients</p>
           </div>
 
           {/* Status Message */}
@@ -232,7 +289,7 @@ function App() {
           <button
             className="send-btn"
             onClick={handleSend}
-            disabled={loading || !html || !to}
+            disabled={loading || !html || recipients.length === 0}
           >
             {loading ? (
               <>
