@@ -2,6 +2,7 @@
   "name": "quick-send",
   "description": "A minimal email sender - upload HTML and send directly",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
     "dev": "concurrently \"npm run dev:api\" \"npm run dev:frontend\"",
     "dev:frontend": "vite",
