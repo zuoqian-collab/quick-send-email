@@ -423,6 +423,330 @@ body {
   }
 }
 
+/* Generator Link Button */
+.generator-link {
+  width: 100%;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.generator-link:hover {
+  color: #10B981;
+  border-color: #10B981;
+  background: rgba(16, 185, 129, 0.04);
+}
+
+.generator-link svg {
+  opacity: 0.7;
+}
+
+.generator-link:hover svg {
+  opacity: 1;
+  color: #10B981;
+}
+
+/* ============ Release Notes Generator Styles ============ */
+
+.generator-page {
+  align-items: flex-start;
+  padding-top: 40px;
+}
+
+.generator-container {
+  max-width: 1200px;
+}
+
+.generator-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 900px) {
+  .generator-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Back Button */
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.back-btn:hover {
+  color: var(--text);
+  border-color: var(--text-muted);
+  background: var(--border-light);
+}
+
+/* Input Panel */
+.input-panel {
+  height: fit-content;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 280px;
+  padding: 16px;
+  font-size: 14px;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+  line-height: 1.6;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card-bg);
+  color: var(--text);
+  resize: vertical;
+  transition: all var(--transition);
+}
+
+.textarea::placeholder {
+  color: var(--text-muted);
+  font-family: inherit;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: #10B981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.label-icon {
+  margin-right: 6px;
+}
+
+.optional {
+  font-weight: 400;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.button-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.secondary-btn {
+  flex: 0 0 auto;
+  height: 48px;
+  padding: 0 24px;
+  font-size: 15px;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--text-secondary);
+  background: var(--border-light);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.secondary-btn:hover:not(:disabled) {
+  background: var(--border);
+}
+
+.secondary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.generate-btn {
+  flex: 1;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  color: white;
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all var(--transition);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.generate-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+}
+
+.generate-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Output Panel */
+.output-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Notes Preview */
+.notes-preview {
+  padding: 20px 24px;
+}
+
+.notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.note-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(16, 185, 129, 0.06);
+  border-radius: 10px;
+  border-left: 3px solid #10B981;
+}
+
+.note-emoji {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.note-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.note-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #059669;
+  margin-bottom: 4px;
+}
+
+.note-text {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+/* Preview Card */
+.preview-card {
+  padding: 20px 24px;
+}
+
+.preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.preview-header .section-title {
+  margin: 0;
+}
+
+.preview-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-family: inherit;
+  color: var(--text-secondary);
+  background: var(--border-light);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.icon-btn:hover {
+  color: var(--text);
+  background: var(--border);
+}
+
+.preview-frame-container {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: white;
+}
+
+.preview-frame {
+  width: 100%;
+  height: 500px;
+  border: none;
+  display: block;
+}
+
+/* Empty State */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+  text-align: center;
+}
+
+.empty-icon {
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.empty-text {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text-muted);
+}
+
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
   :root {
@@ -468,6 +792,27 @@ body {
 
   .recipient-tag {
     background: rgba(99, 102, 241, 0.2);
+  }
+
+  /* Generator dark mode */
+  .generator-link:hover {
+    background: rgba(16, 185, 129, 0.1);
+  }
+
+  .textarea {
+    background: var(--bg);
+  }
+
+  .textarea:focus {
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+  }
+
+  .note-item {
+    background: rgba(16, 185, 129, 0.1);
+  }
+
+  .preview-frame-container {
+    background: #18181B;
   }
 }
 

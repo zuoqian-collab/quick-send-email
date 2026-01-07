@@ -1,6 +1,10 @@
 import React, { useState, useRef } from 'react';
+import { ReleaseNotesGenerator } from './ReleaseNotesGenerator';
+
+type Page = 'send' | 'generator';
 
 function App() {
+  const [page, setPage] = useState<Page>('send');
   const [recipients, setRecipients] = useState<string[]>([]);
   const [recipientInput, setRecipientInput] = useState('');
   const [subject, setSubject] = useState('');
@@ -154,6 +158,11 @@ function App() {
     }
   };
 
+  // Show generator page
+  if (page === 'generator') {
+    return <ReleaseNotesGenerator onBack={() => setPage('send')} />;
+  }
+
   return (
     <div className="app">
       <div className="container">
@@ -304,6 +313,17 @@ function App() {
                 Send Email
               </>
             )}
+          </button>
+
+          {/* Generator Link */}
+          <button
+            className="generator-link"
+            onClick={() => setPage('generator')}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            AI Release Notes Generator
           </button>
         </main>
       </div>

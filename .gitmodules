@@ -1,0 +1,3 @@
+[submodule "docs/product-docs"]
+	path = docs/product-docs
+	url = https://github.com/zuoqian-collab/product-docs.git

@@ -1,72 +1,4 @@
-import 'dotenv/config';
-import express from 'express';
-import cors from 'cors';
-import nodemailer from 'nodemailer';
-
-const app = express();
-const PORT = process.env.PORT || 3006;
-
-app.use(cors());
-app.use(express.json({ limit: '10mb' }));
-
-function isEmail(v: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-}
-
-// ============ Release Notes Generator API ============
-
-interface ReleaseNote {
-  platform: 'all' | 'mobile' | 'desktop';
-  emoji: string;
-  label: string;
-  content: string;
-}
-
-const SYSTEM_PROMPT = `你是一个专业的产品经理助手，帮助整理软件更新日志。
-
-你的任务是从原始的版本更新日志中提取值得对用户说的重要更新，并按平台分类。
-
-规则：
-1. 只提取用户真正关心的功能更新，忽略技术细节和小bug修复
-2. 用简洁、用户友好的语言描述每个更新
-3. 按三个平台分类：All Platforms（所有平台通用）、Mobile（移动端）、Desktop（桌面端）
-4. 每个平台的更新用简短的一句话或要点列表描述
-5. 如果某个平台没有更新，可以省略
-6. 使用英文输出
-
-输出JSON格式：
-{
-  "notes": [
-    {
-      "platform": "all" | "mobile" | "desktop",
-      "emoji": "📍" | "📱" | "💻",
-      "label": "All Platforms" | "Mobile" | "Desktop",
-      "content": "更新内容描述"
-    }
-  ]
-}
-
-注意：
-- platform为"all"时，emoji用"📍"，label用"All Platforms"
-- platform为"mobile"时，emoji用"📱"，label用"Mobile"
-- platform为"desktop"时，emoji用"💻"，label用"Desktop"
-- content可以是单行描述，或者用"• "分隔的多行要点`;
-
-function generateHtmlFromNotes(notes: ReleaseNote[], bannerUrl?: string): string {
-  const banner = bannerUrl || 'https://download.filomail.com/public/assets/20251215-180812.png';
-  
-  const notesHtml = notes.map(note => `
-                                <tr>
-                                  <td style="padding: 10px 0; vertical-align: top; width: 36px;">
-                                    <span style="font-size: 20px;">${note.emoji}</span>
-                                  </td>
-                                  <td style="padding: 10px 0; vertical-align: top;">
-                                    <strong style="color: #0D93F3;">${note.label}</strong><br>
-                                    <span style="color: #002346;">${note.content.replace(/\n/g, '<br>')}</span>
-                                  </td>
-                                </tr>`).join('');
-
-  return `<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" lang="en">
 
 <head>
@@ -190,7 +122,7 @@ function generateHtmlFromNotes(notes: ReleaseNote[], bannerUrl?: string): string
 														<tr>
 															<td class="pad">
 																<div class="alignment" align="left">
-																	<img src="${banner}" style="display: block; height: auto; border: 0; max-width: 100%; border-radius: 12px;" width="580" alt title height="auto">
+																	<img src="https://download.filomail.com/public/assets/20251215-180812.png" style="display: block; height: auto; border: 0; max-width: 100%; border-radius: 12px;" width="580" alt title height="auto">
 																</div>
 															</td>
 														</tr>
@@ -206,7 +138,33 @@ function generateHtmlFromNotes(notes: ReleaseNote[], bannerUrl?: string): string
 																<!-- 更新内容卡片 -->
 																<div style="background-color: #EEF9FF; border-radius: 12px; padding: 20px 24px; margin: 20px 0; border-left: 4px solid #22A0FB;">
 																	<table width="100%" border="0" cellpadding="0" cellspacing="0" style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 15px; color: #002346; line-height: 1.6;">
-${notesHtml}
+																		<tr>
+																			<td style="padding: 10px 0; vertical-align: top; width: 36px;">
+																				<span style="font-size: 20px;">📍</span>
+																			</td>
+																			<td style="padding: 10px 0; vertical-align: top;">
+																				<strong style="color: #0D93F3;">All Platforms</strong><br>
+																				<span style="color: #002346;">When replying to an email, the sender and subject are now expanded by default.</span>
+																			</td>
+																		</tr>
+																		<tr>
+																			<td style="padding: 10px 0; vertical-align: top; width: 36px;">
+																				<span style="font-size: 20px;">📱</span>
+																			</td>
+																			<td style="padding: 10px 0; vertical-align: top;">
+																				<strong style="color: #0D93F3;">Mobile</strong><br>
+																				<span style="color: #002346;">Improved mail loading speed when opening the app for the first time.</span>
+																			</td>
+																		</tr>
+																		<tr>
+																			<td style="padding: 10px 0; vertical-align: top; width: 36px;">
+																				<span style="font-size: 20px;">💻</span>
+																			</td>
+																			<td style="padding: 10px 0; vertical-align: top;">
+																				<strong style="color: #0D93F3;">Desktop</strong><br>
+																				<span style="color: #002346;">• Added a manual "Fetch mail" entry.<br>• Optimized recipient display when composing a reply.<br>• Each To-Do section now supports a one-click "Mark all done" action.</span>
+																			</td>
+																		</tr>
 																	</table>
 																</div>
 																<div style="color:#101112;direction:ltr;font-family:'Helvetica Neue', Helvetica, Arial, sans-serif;font-size:16px;font-weight:400;letter-spacing:0px;line-height:1.8;text-align:left;mso-line-height-alt:29px;">
@@ -260,168 +218,3 @@ ${notesHtml}
 </body>
 
 </html>
-`;
-}
-
-app.post('/api/generate-notes', async (req, res) => {
-  try {
-    const { rawNotes, bannerUrl } = req.body;
-
-    if (!rawNotes || typeof rawNotes !== 'string') {
-      res.status(400).json({ error: 'Missing raw release notes text' });
-      return;
-    }
-
-    const openaiKey = process.env.OPENAI_API_KEY;
-    if (!openaiKey) {
-      res.status(500).json({ 
-        error: 'Missing OPENAI_API_KEY. Please configure it in .env file.' 
-      });
-      return;
-    }
-
-    console.log('🔮 Processing release notes with AI...');
-
-    // Call OpenAI API
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${openaiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: `请整理以下版本更新日志：\n\n${rawNotes}` },
-        ],
-        temperature: 0.3,
-        response_format: { type: 'json_object' },
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('❌ OpenAI API error:', errorData);
-      res.status(500).json({ 
-        error: 'Failed to process with AI',
-        details: errorData,
-      });
-      return;
-    }
-
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
-
-    if (!content) {
-      res.status(500).json({ error: 'No response from AI' });
-      return;
-    }
-
-    const parsed = JSON.parse(content) as { notes: ReleaseNote[] };
-    const html = generateHtmlFromNotes(parsed.notes, bannerUrl);
-
-    console.log('✅ Generated release notes HTML successfully');
-
-    res.status(200).json({
-      notes: parsed.notes,
-      html,
-    });
-
-  } catch (e: any) {
-    console.error('❌ Failed to generate release notes:', e);
-    res.status(500).json({
-      error: 'Failed to generate release notes',
-      details: e?.message || String(e),
-    });
-  }
-});
-
-app.post('/api/send', async (req, res) => {
-  try {
-    const { to, subject, html } = req.body;
-
-    console.log('📨 Received email request:', { to, subject: subject?.substring(0, 50) });
-
-    // 读取 Gmail SMTP 配置
-    const smtpUser = process.env.SMTP_USER;
-    const smtpPass = process.env.SMTP_PASS;
-    const mailFrom = process.env.MAIL_FROM || `Quick Send <${smtpUser}>`;
-
-    console.log('🔑 SMTP Config:', {
-      user: smtpUser ? '✓ Configured' : '✗ Missing',
-      pass: smtpPass ? '✓ Configured' : '✗ Missing',
-      from: mailFrom,
-    });
-
-    if (!smtpUser || !smtpPass) {
-      res.status(500).json({
-        error: 'Missing SMTP credentials. Please set SMTP_USER and SMTP_PASS in .env file.',
-      });
-      return;
-    }
-
-    // 支持单个邮箱（字符串）或多个邮箱（数组）
-    let recipients: string[] = [];
-    if (Array.isArray(to)) {
-      recipients = to.filter((email: string) => typeof email === 'string' && isEmail(email));
-    } else if (typeof to === 'string' && isEmail(to)) {
-      recipients = [to];
-    }
-
-    if (recipients.length === 0) {
-      res.status(400).json({ error: 'Please provide at least one valid recipient email.' });
-      return;
-    }
-    if (!html || typeof html !== 'string') {
-      res.status(400).json({ error: 'Missing HTML content.' });
-      return;
-    }
-
-    console.log('📤 Attempting to send email to:', recipients.join(', '));
-
-    // 创建 Nodemailer transporter（使用 Gmail）
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: smtpUser,
-        pass: smtpPass,
-      },
-    });
-
-    // 发送邮件（多个收件人用逗号分隔）
-    const info = await transporter.sendMail({
-      from: mailFrom,
-      to: recipients.join(', '),
-      subject: subject || 'Quick Send Email',
-      html,
-    });
-
-    console.log('✅ Email sent successfully to', recipients.length, 'recipient(s):', info.messageId);
-
-    res.status(200).json({
-      ok: true,
-      messageId: info.messageId,
-      response: info.response,
-      recipientCount: recipients.length,
-    });
-  } catch (e: any) {
-    console.error('❌ Failed to send email:', e);
-    res.status(500).json({
-      error: 'Failed to send email',
-      details: e?.message || String(e),
-    });
-  }
-});
-
-app.listen(PORT, () => {
-  console.log(`
-🚀 Quick Send API running at http://localhost:${PORT}
-📧 Email endpoint: http://localhost:${PORT}/api/send
-
-💡 Make sure to configure your .env file with Gmail credentials:
-   SMTP_USER=your-email@gmail.com
-   SMTP_PASS=your-app-password
-`);
-});
-
